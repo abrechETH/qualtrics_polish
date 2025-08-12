@@ -464,10 +464,53 @@ Qualtrics.SurveyEngine.addOnReady(function () {
 
 
 
-    // Tooltip functionality for links
+    // Link click functionality - now shows interruption screen
     window.showTooltip = function(event, message, type) {
         event.preventDefault();
         
+        // Store link information for interruption screen
+        var linkText = event.target.textContent || 'link';
+        var actionDescription = 'Clicking on "' + linkText + '"';
+        
+        // Show interruption screen for links
+        showInterruptionScreen('link', actionDescription, message, type);
+    };
+
+    // Interruption screen functionality (for both attachments and links)
+    var currentInterruptionType = '';
+    var currentInterruptionData = '';
+    var currentLinkMessage = '';
+    var currentLinkType = '';
+
+    function showInterruptionScreen(type, actionDescription, linkMessage, linkType) {
+        currentInterruptionType = type;
+        currentInterruptionData = actionDescription;
+        currentLinkMessage = linkMessage || '';
+        currentLinkType = linkType || '';
+        
+        var modal = document.getElementById('interruption-modal');
+        var actionText = document.getElementById('interruption-action');
+        
+        if (type === 'attachment') {
+            actionText.textContent = 'Viewing attachment: ' + actionDescription;
+        } else if (type === 'link') {
+            actionText.textContent = actionDescription;
+        }
+        
+        modal.style.display = 'flex';
+    }
+
+    function hideInterruptionScreen() {
+        var modal = document.getElementById('interruption-modal');
+        modal.style.display = 'none';
+        currentInterruptionType = '';
+        currentInterruptionData = '';
+        currentLinkMessage = '';
+        currentLinkType = '';
+    }
+
+    // Function to show tooltip after user proceeds through interruption screen
+    function showTooltipAfterInterruption(message, type) {
         // Remove any existing tooltip
         var existingTooltip = document.querySelector('.link-tooltip');
         if (existingTooltip) {
@@ -486,20 +529,19 @@ Qualtrics.SurveyEngine.addOnReady(function () {
         
         document.body.appendChild(tooltip);
         
-        // Position tooltip near the clicked element
-        var rect = event.target.getBoundingClientRect();
+        // Position tooltip in center of screen for better visibility
         var tooltipRect = tooltip.getBoundingClientRect();
-        
-        var left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
-        var top = rect.bottom + 10;
+        var left = (window.innerWidth / 2) - (tooltipRect.width / 2);
+        var top = (window.innerHeight / 2) - (tooltipRect.height / 2);
         
         // Ensure tooltip stays within viewport
         if (left < 10) left = 10;
         if (left + tooltipRect.width > window.innerWidth - 10) {
             left = window.innerWidth - tooltipRect.width - 10;
         }
+        if (top < 10) top = 10;
         if (top + tooltipRect.height > window.innerHeight - 10) {
-            top = rect.top - tooltipRect.height - 10;
+            top = window.innerHeight - tooltipRect.height - 10;
         }
         
         tooltip.style.left = left + 'px';
@@ -509,38 +551,12 @@ Qualtrics.SurveyEngine.addOnReady(function () {
         // Close tooltip when clicking outside
         setTimeout(function() {
             document.addEventListener('click', function closeTooltip(e) {
-                if (!tooltip.contains(e.target) && e.target !== event.target) {
+                if (!tooltip.contains(e.target)) {
                     tooltip.remove();
                     document.removeEventListener('click', closeTooltip);
                 }
             });
         }, 100);
-    };
-
-    // Interruption screen functionality (kept only for attachments)
-    var currentInterruptionType = '';
-    var currentInterruptionData = '';
-
-    function showInterruptionScreen(type, actionDescription) {
-        currentInterruptionType = type;
-        currentInterruptionData = actionDescription;
-        
-        var modal = document.getElementById('interruption-modal');
-        var actionText = document.getElementById('interruption-action');
-        
-        if (type === 'attachment') {
-            actionText.textContent = 'Viewing attachment: ' + actionDescription;
-        }
-        // Note: Links now use tooltips instead of interruption screen
-        
-        modal.style.display = 'flex';
-    }
-
-    function hideInterruptionScreen() {
-        var modal = document.getElementById('interruption-modal');
-        modal.style.display = 'none';
-        currentInterruptionType = '';
-        currentInterruptionData = '';
     }
 
     function proceedWithAction() {
@@ -551,6 +567,9 @@ Qualtrics.SurveyEngine.addOnReady(function () {
             
             attachmentContainer.style.display = 'block';
             attachmentBtn.textContent = '📎 Hide Attachments (1)';
+        } else if (currentInterruptionType === 'link') {
+            // For links, show the tooltip after interruption screen
+            showTooltipAfterInterruption(currentLinkMessage, currentLinkType);
         }
         
         hideInterruptionScreen();
