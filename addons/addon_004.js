@@ -17,13 +17,13 @@ Qualtrics.SurveyEngine.addOnUnload(function () {
 
     // Clean up all addon elements using common class
     var addonElements = document.querySelectorAll('.qualtrics-addon');
-    addonElements.forEach(function(element) {
+    addonElements.forEach(function (element) {
         element.remove();
     });
-    
+
     // Clean up any tooltips
     var tooltips = document.querySelectorAll('.link-tooltip');
-    tooltips.forEach(function(tooltip) {
+    tooltips.forEach(function (tooltip) {
         tooltip.remove();
     });
 
@@ -57,14 +57,14 @@ Qualtrics.SurveyEngine.addOnReady(function () {
         <p>Best regards,<br>Sarah Johnson</p>
     `
 
-	var phishyContent = `
+    var phishyContent = `
 		<p>Dear Valued Customer,</p>
 		<p>We have detected unusual activity on your account that requires immediate attention. 
 		Your account security is our top priority.</p>
 		<p>To protect your account, please verify your information by clicking the link below:</p>
 		<p style="text-align: center;">
-			<a href="#" style="color: #0066cc;" onclick="showTooltip(event, '⚠️ PHISHING ATTEMPT DETECTED! This link would steal your credentials. Never click suspicious links demanding urgent action.', 'warning'); return false;">Verify Account Now</a>
-		</p>
+			<br><a href="#" style="color: #0066cc;" onclick="showTooltip(event, '⚠️ PHISHING ATTEMPT DETECTED! This link would steal your credentials. Never click suspicious links demanding urgent action.', 'warning'); return false;">Verify Account Now</a>
+		</p><br>
 		<p>If you do not take action within 24 hours, your account will be temporarily suspended.</p>
 		<p>This is an automated message, please do not reply.</p>
 		<p>Best regards,<br>Account Security Team</p>
@@ -91,12 +91,12 @@ Qualtrics.SurveyEngine.addOnReady(function () {
 				border-radius: 8px 8px 0 0;
 			">
 				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-					<h2 style="margin: 0; color: #333; font-size: 18px;">Account Security Alert</h2>
+					<h2 id="subject-header" style="margin: 0; color: #333; font-size: 18px;">Account Security Alert</h2>
 					<span style="color: #666; font-size: 14px;">2 hours ago</span>
 				</div>
 				<div style="color: #666; font-size: 14px;">
-					<strong>From:</strong> "Sarah Johnson" &lt;sarah.johnson@company.com&gt;<br>
-					<strong>To:</strong> "You" &lt;you@company.com&gt;<br>
+					<strong>From:</strong> <span id="sender-span">"Account Security" <account.security@company.com></span><br>
+					<strong>To:</strong> <span>"You" &lt;you@company.com&gt;</span><br>
 				</div>
 			</div>
 			
@@ -110,31 +110,13 @@ Qualtrics.SurveyEngine.addOnReady(function () {
 				border-bottom: 1px solid #e0e0e0;
 			"> ` + phishyContent + `</div>
 			
-			<!-- Action Buttons -->
-			<div id="attachment-toggle" style="
-				padding: 15px 20px;
-				background: #f8f9fa;
-				border-top: 1px solid #e0e0e0;
-				text-align: center;
-			">
-				<button id="show-attachments-btn" style="
-					background: #17a2b8;
-					color: white;
-					border: none;
-					padding: 8px 16px;
-					border-radius: 4px;
-					cursor: pointer;
-					font-size: 14px;
-					font-weight: 500;
-				">📎 Show Attachments (1)</button>
-			</div>
-			
 			<div id="attachment-container" style="
 				padding: 20px;
 				background: #f8f9fa;
 				border-top: 1px solid #e0e0e0;
-				display: none;
+				display: block;
 			">
+			<h3 style="padding-bottom: 12px;">Attachment</h3>
 				<div id="attachment-item" style="
 					display: flex;
 					align-items: center;
@@ -143,6 +125,7 @@ Qualtrics.SurveyEngine.addOnReady(function () {
 					border-radius: 6px;
 					background: white;
 					box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+					cursor: pointer;
 				">
 					<div id="attachment-icon" style="
 						font-size: 24px;
@@ -263,7 +246,7 @@ Qualtrics.SurveyEngine.addOnReady(function () {
 
     console.log(s1);
     console.log(s2);
-	console.log(something);
+    console.log(something);
 
     // Insert the email interface into the question container (append instead of replace)
     var emailDiv = document.createElement('div');
@@ -328,18 +311,6 @@ Qualtrics.SurveyEngine.addOnReady(function () {
 			border-color: rgba(0, 102, 204, 0.5);
 			box-shadow: 0 2px 6px rgba(0, 102, 204, 0.2);
 			transform: translateY(-1px);
-		}
-		
-		#show-attachments-btn {
-			transition: all 0.2s ease;
-			border: 2px solid rgba(23, 162, 184, 0.3) !important;
-			box-shadow: 0 1px 3px rgba(23, 162, 184, 0.1) !important;
-		}
-		
-		#show-attachments-btn:hover {
-			background: #138496 !important;
-			border-color: rgba(23, 162, 184, 0.6) !important;
-			box-shadow: 0 3px 8px rgba(23, 162, 184, 0.2) !important;
 		}
 
 		/* Tooltip styles */
@@ -430,6 +401,19 @@ Qualtrics.SurveyEngine.addOnReady(function () {
     // Email content switching functionality
     var isPhishingMode = false;
 
+    // Function to update the subject header
+    function updateSubjectAndSender(isPhishing) {
+        let subjectHeader = document.getElementById('subject-header');
+        let senderSpan = document.getElementById('sender-span');
+        if (subjectHeader) {
+            subjectHeader.innerText = isPhishing ? "Account Security Alert" : "Quarter Results";
+        }
+        if (senderSpan) {
+            senderSpan.innerText = isPhishing ?
+                "\"Account Security\" <account.security@company.com>" :
+                "\"Sarah Johnson\" <sarah.johnson@company.com>";
+        }
+    }
 
 
     document.getElementById('change-content-btn').addEventListener('click', function () {
@@ -438,13 +422,18 @@ Qualtrics.SurveyEngine.addOnReady(function () {
         var attachmentName = document.getElementById('attachment-name');
         var attachmentSize = document.getElementById('attachment-size');
         isPhishingMode = !isPhishingMode;
+        updateSubjectAndSender(isPhishingMode);
 
         if (isPhishingMode) {
             emailBody.innerHTML = emailContent;
             this.textContent = 'Display Phishing Email';
             this.style.background = '#dc3545';
-            this.onmouseover = function() { this.style.background = '#c82333'; };
-            this.onmouseout = function() { this.style.background = '#dc3545'; };
+            this.onmouseover = function () {
+                this.style.background = '#c82333';
+            };
+            this.onmouseout = function () {
+                this.style.background = '#dc3545';
+            };
             // Update attachment for normal email
             attachmentIcon.textContent = '📄';
             attachmentName.textContent = 'Q1_Business_Report.pdf';
@@ -453,8 +442,12 @@ Qualtrics.SurveyEngine.addOnReady(function () {
             emailBody.innerHTML = phishyContent;
             this.textContent = 'Display Normal Email';
             this.style.background = '#28a745';
-            this.onmouseover = function() { this.style.background = '#218838'; };
-            this.onmouseout = function() { this.style.background = '#28a745'; };
+            this.onmouseover = function () {
+                this.style.background = '#218838';
+            };
+            this.onmouseout = function () {
+                this.style.background = '#28a745';
+            };
             // Update attachment for phishing email
             attachmentIcon.textContent = '📁';
             attachmentName.textContent = 'urgent_security_update.exe';
@@ -463,15 +456,14 @@ Qualtrics.SurveyEngine.addOnReady(function () {
     });
 
 
-
     // Link click functionality - now shows interruption screen
-    window.showTooltip = function(event, message, type) {
+    window.showTooltip = function (event, message, type) {
         event.preventDefault();
-        
+
         // Store link information for interruption screen
         var linkText = event.target.textContent || 'link';
         var actionDescription = 'Clicking on "' + linkText + '"';
-        
+
         // Show interruption screen for links
         showInterruptionScreen('link', actionDescription, message, type);
     };
@@ -487,16 +479,16 @@ Qualtrics.SurveyEngine.addOnReady(function () {
         currentInterruptionData = actionDescription;
         currentLinkMessage = linkMessage || '';
         currentLinkType = linkType || '';
-        
+
         var modal = document.getElementById('interruption-modal');
         var actionText = document.getElementById('interruption-action');
-        
+
         if (type === 'attachment') {
             actionText.textContent = 'Viewing attachment: ' + actionDescription;
         } else if (type === 'link') {
             actionText.textContent = actionDescription;
         }
-        
+
         modal.style.display = 'flex';
     }
 
@@ -516,7 +508,7 @@ Qualtrics.SurveyEngine.addOnReady(function () {
         if (existingTooltip) {
             existingTooltip.remove();
         }
-        
+
         // Create new tooltip
         var tooltip = document.createElement('div');
         tooltip.className = 'link-tooltip ' + type;
@@ -526,14 +518,14 @@ Qualtrics.SurveyEngine.addOnReady(function () {
                 <button class="link-tooltip-close" onclick="this.parentElement.parentElement.remove()">&times;</button>
             </div>
         `;
-        
+
         document.body.appendChild(tooltip);
-        
+
         // Position tooltip in center of screen for better visibility
         var tooltipRect = tooltip.getBoundingClientRect();
         var left = (window.innerWidth / 2) - (tooltipRect.width / 2);
         var top = (window.innerHeight / 2) - (tooltipRect.height / 2);
-        
+
         // Ensure tooltip stays within viewport
         if (left < 10) left = 10;
         if (left + tooltipRect.width > window.innerWidth - 10) {
@@ -543,13 +535,13 @@ Qualtrics.SurveyEngine.addOnReady(function () {
         if (top + tooltipRect.height > window.innerHeight - 10) {
             top = window.innerHeight - tooltipRect.height - 10;
         }
-        
+
         tooltip.style.left = left + 'px';
         tooltip.style.top = top + 'px';
         tooltip.style.display = 'block';
-        
+
         // Close tooltip when clicking outside
-        setTimeout(function() {
+        setTimeout(function () {
             document.addEventListener('click', function closeTooltip(e) {
                 if (!tooltip.contains(e.target)) {
                     tooltip.remove();
@@ -560,18 +552,11 @@ Qualtrics.SurveyEngine.addOnReady(function () {
     }
 
     function proceedWithAction() {
-        if (currentInterruptionType === 'attachment') {
-            // Show attachments (we only show interruption when going from hidden to visible)
-            var attachmentContainer = document.getElementById('attachment-container');
-            var attachmentBtn = document.getElementById('show-attachments-btn');
-            
-            attachmentContainer.style.display = 'block';
-            attachmentBtn.textContent = '📎 Hide Attachments (1)';
-        } else if (currentInterruptionType === 'link') {
+        if (currentInterruptionType === 'link') {
             // For links, show the tooltip after interruption screen
             showTooltipAfterInterruption(currentLinkMessage, currentLinkType);
         }
-        
+
         hideInterruptionScreen();
     }
 
@@ -595,23 +580,15 @@ Qualtrics.SurveyEngine.addOnReady(function () {
     window.showInterruptionScreen = showInterruptionScreen;
 
     // Add button functionality
-	document.getElementById('show-attachments-btn').addEventListener('click', function () {
-		var attachmentContainer = document.getElementById('attachment-container');
-		var attachmentName = document.getElementById('attachment-name');
-		
-		// Only show interruption screen when going from hidden to visible
-		if (attachmentContainer.style.display === 'none' || attachmentContainer.style.display === '') {
-			var attachmentDescription = attachmentName ? attachmentName.textContent : 'unknown file';
-			showInterruptionScreen('attachment', attachmentDescription);
-		} else {
-			// Hide attachments directly without interruption
-			attachmentContainer.style.display = 'none';
-			this.textContent = '📎 Show Attachments (1)';
-		}
-	});
+    document.getElementById('attachment-item').addEventListener('click', function () {
+        var attachmentName = document.getElementById('attachment-name');
+
+        // Only show interruption screen when going from hidden to visible
+        var attachmentDescription = attachmentName ? attachmentName.textContent : 'unknown file';
+        showInterruptionScreen('attachment', attachmentDescription);
+    });
 
 
-
-	// replaced with initPhishingHelper() from separate addons
+    // replaced with initPhishingHelper() from separate addons
 
 });

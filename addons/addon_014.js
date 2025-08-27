@@ -17,13 +17,13 @@ Qualtrics.SurveyEngine.addOnUnload(function () {
 
     // Clean up all addon elements using common class
     var addonElements = document.querySelectorAll('.qualtrics-addon');
-    addonElements.forEach(function(element) {
+    addonElements.forEach(function (element) {
         element.remove();
     });
-    
+
     // Clean up any tooltips
     var tooltips = document.querySelectorAll('.link-tooltip');
-    tooltips.forEach(function(tooltip) {
+    tooltips.forEach(function (tooltip) {
         tooltip.remove();
     });
 
@@ -57,14 +57,14 @@ Qualtrics.SurveyEngine.addOnReady(function () {
         <p>Best regards,<br>Sarah Johnson</p>
     `
 
-	var phishyContent = `
+    var phishyContent = `
 		<p>Dear Valued Customer,</p>
 		<p>We have detected unusual activity on your account that requires immediate attention. 
 		Your account security is our top priority.</p>
 		<p>To protect your account, please verify your information by clicking the link below:</p>
 		<p style="text-align: center;">
-			<a href="#" style="color: #0066cc;" onclick="showTooltip(event, '⚠️ PHISHING ATTEMPT DETECTED! This link would steal your credentials. Never click suspicious links demanding urgent action.', 'warning'); return false;">Verify Account Now</a>
-		</p>
+			<br><a href="#" style="color: #0066cc;" onclick="showTooltip(event, '⚠️ PHISHING ATTEMPT DETECTED! This link would steal your credentials. Never click suspicious links demanding urgent action.', 'warning'); return false;">Verify Account Now</a>
+		</p><br>
 		<p>If you do not take action within 24 hours, your account will be temporarily suspended.</p>
 		<p>This is an automated message, please do not reply.</p>
 		<p>Best regards,<br>Account Security Team</p>
@@ -91,12 +91,12 @@ Qualtrics.SurveyEngine.addOnReady(function () {
 				border-radius: 8px 8px 0 0;
 			">
 				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-					<h2 style="margin: 0; color: #333; font-size: 18px;">Account Security Alert</h2>
+					<h2 id="subject-header" style="margin: 0; color: #333; font-size: 18px;">Account Security Alert</h2>
 					<span style="color: #666; font-size: 14px;">2 hours ago</span>
 				</div>
 				<div style="color: #666; font-size: 14px;">
-					<strong>From:</strong> "Sarah Johnson" &lt;sarah.johnson@company.com&gt;<br>
-					<strong>To:</strong> "You" &lt;you@company.com&gt;<br>
+					<strong>From:</strong> <span id="sender-span">"Account Security" <account.security@company.com></span><br>
+					<strong>To:</strong> <span>"You" &lt;you@company.com&gt;</span><br>
 				</div>
 			</div>
 			
@@ -110,31 +110,13 @@ Qualtrics.SurveyEngine.addOnReady(function () {
 				border-bottom: 1px solid #e0e0e0;
 			"> ` + phishyContent + `</div>
 			
-			<!-- Action Buttons -->
-			<div id="attachment-toggle" style="
-				padding: 15px 20px;
-				background: #f8f9fa;
-				border-top: 1px solid #e0e0e0;
-				text-align: center;
-			">
-				<button id="show-attachments-btn" style="
-					background: #17a2b8;
-					color: white;
-					border: none;
-					padding: 8px 16px;
-					border-radius: 4px;
-					cursor: pointer;
-					font-size: 14px;
-					font-weight: 500;
-				">📎 Show Attachments (1)</button>
-			</div>
-			
 			<div id="attachment-container" style="
 				padding: 20px;
 				background: #f8f9fa;
 				border-top: 1px solid #e0e0e0;
-				display: none;
+				display: block;
 			">
+			<h3 style="padding-bottom: 12px;">Attachment</h3>
 				<div id="attachment-item" style="
 					display: flex;
 					align-items: center;
@@ -190,7 +172,7 @@ Qualtrics.SurveyEngine.addOnReady(function () {
 
     console.log(s1);
     console.log(s2);
-	console.log(something);
+    console.log(something);
 
     // Insert the email interface into the question container (append instead of replace)
     var emailDiv = document.createElement('div');
@@ -206,7 +188,6 @@ Qualtrics.SurveyEngine.addOnReady(function () {
 			transform: translateY(-1px);
 			transition: all 0.2s ease;
 		}
-		#show-attachments-btn:hover { background: #138496 !important; }
 		
 		/* Tooltip styles */
 		.link-tooltip {
@@ -295,22 +276,42 @@ Qualtrics.SurveyEngine.addOnReady(function () {
 	`;
     document.head.appendChild(style);
 
-    var isPhishingMode = false;
+    var isPhishingMode = true;
 
     // Global variables for countdown control
     var countdownInterval = null;
+    var opacityTimeout = null;
+    var removeTimeout = null;
     var countdownDashboard = null;
+
+    // Function to update the subject header
+    function updateSubjectAndSender(isPhishing) {
+        let subjectHeader = document.getElementById('subject-header');
+        let senderSpan = document.getElementById('sender-span');
+        if (subjectHeader) {
+            subjectHeader.innerText = isPhishing ? "Account Security Alert" : "Quarter Results";
+        }
+        if (senderSpan) {
+            senderSpan.innerText = isPhishing ?
+                "\"Account Security\" <account.security@company.com>" :
+                "\"Sarah Johnson\" <sarah.johnson@company.com>";
+        }
+    }
 
     // Function to start/restart countdown
     function startCountdown() {
         // Clear existing countdown if running
         if (countdownInterval) {
             clearInterval(countdownInterval);
+            clearTimeout(opacityTimeout);
+            clearTimeout(removeTimeout);
         }
 
         // Remove existing dashboard if present
         if (countdownDashboard) {
             countdownDashboard.remove();
+            clearTimeout(opacityTimeout);
+            clearTimeout(removeTimeout);
         }
 
         // Create new countdown dashboard
@@ -378,21 +379,18 @@ Qualtrics.SurveyEngine.addOnReady(function () {
         countdownDashboard.appendChild(dashboardHeader);
         countdownDashboard.appendChild(dashboardContent);
 
-        // Add to page
-        document.body.appendChild(countdownDashboard);
 
         var emailContainer = document.getElementById('email-container');
-        
+
         // Disable all links and attachments initially
         var links = emailContainer.querySelectorAll('a');
         var buttons = emailContainer.querySelectorAll('button');
-        var attachmentBtn = document.getElementById('show-attachments-btn');
 
         // Store original onclick handlers and disable links
         var originalHandlers = [];
-        links.forEach(function(link, index) {
+        links.forEach(function (link, index) {
             originalHandlers[index] = link.onclick;
-            link.onclick = function(e) {
+            link.onclick = function (e) {
                 e.preventDefault();
                 alert('Please wait for the security cooldown to finish.');
                 return false;
@@ -402,45 +400,35 @@ Qualtrics.SurveyEngine.addOnReady(function () {
         });
 
         // Disable buttons except basic navigation
-        buttons.forEach(function(button) {
+        buttons.forEach(function (button) {
             if (button.id !== 'back-btn' && button.id !== 'reply-btn' && button.id !== 'delete-btn') {
                 button.style.pointerEvents = 'none';
                 button.style.opacity = '0.5';
             }
         });
 
-        if (attachmentBtn) {
-            attachmentBtn.style.pointerEvents = 'none';
-            attachmentBtn.style.opacity = '0.5';
-        }
-
         // Start countdown
         var timeLeft = 5;
-        countdownInterval = setInterval(function() {
+        countdownInterval = setInterval(function () {
             timeLeft--;
             countdownText.textContent = timeLeft;
 
             if (timeLeft <= 0) {
                 clearInterval(countdownInterval);
                 countdownInterval = null;
-                
+
                 // Re-enable all links and restore handlers
-                links.forEach(function(link, index) {
+                links.forEach(function (link, index) {
                     link.onclick = originalHandlers[index];
                     link.style.pointerEvents = 'auto';
                     link.style.opacity = '1';
                 });
 
                 // Re-enable buttons
-                buttons.forEach(function(button) {
+                buttons.forEach(function (button) {
                     button.style.pointerEvents = 'auto';
                     button.style.opacity = '1';
                 });
-
-                if (attachmentBtn) {
-                    attachmentBtn.style.pointerEvents = 'auto';
-                    attachmentBtn.style.opacity = '1';
-                }
 
                 // Update dashboard to show completion
                 countdownText.textContent = '✓';
@@ -453,11 +441,11 @@ Qualtrics.SurveyEngine.addOnReady(function () {
                 `;
 
                 // Auto-hide after 3 seconds
-                setTimeout(function() {
+                opacityTimeout = setTimeout(function () {
                     if (countdownDashboard) {
                         countdownDashboard.style.transition = 'opacity 0.5s ease';
                         countdownDashboard.style.opacity = '0';
-                        setTimeout(function() {
+                        removeTimeout = setTimeout(function () {
                             if (countdownDashboard) {
                                 countdownDashboard.remove();
                                 countdownDashboard = null;
@@ -467,8 +455,11 @@ Qualtrics.SurveyEngine.addOnReady(function () {
                 }, 3000);
             }
         }, 1000);
-    }
 
+
+        // Add to page
+        document.body.appendChild(countdownDashboard);
+    }
 
 
     document.getElementById('change-content-btn').addEventListener('click', function () {
@@ -477,13 +468,17 @@ Qualtrics.SurveyEngine.addOnReady(function () {
         var attachmentName = document.getElementById('attachment-name');
         var attachmentSize = document.getElementById('attachment-size');
         isPhishingMode = !isPhishingMode;
-
-        if (isPhishingMode) {
+        updateSubjectAndSender(isPhishingMode);
+        if (!isPhishingMode) {
             emailBody.innerHTML = emailContent;
             this.textContent = 'Display Phishing Email';
             this.style.background = '#dc3545';
-            this.onmouseover = function() { this.style.background = '#c82333'; };
-            this.onmouseout = function() { this.style.background = '#dc3545'; };
+            this.onmouseover = function () {
+                this.style.background = '#c82333';
+            };
+            this.onmouseout = function () {
+                this.style.background = '#dc3545';
+            };
             // Update attachment for normal email
             attachmentIcon.textContent = '📄';
             attachmentName.textContent = 'Q1_Business_Report.pdf';
@@ -492,8 +487,12 @@ Qualtrics.SurveyEngine.addOnReady(function () {
             emailBody.innerHTML = phishyContent;
             this.textContent = 'Display Normal Email';
             this.style.background = '#28a745';
-            this.onmouseover = function() { this.style.background = '#218838'; };
-            this.onmouseout = function() { this.style.background = '#28a745'; };
+            this.onmouseover = function () {
+                this.style.background = '#218838';
+            };
+            this.onmouseout = function () {
+                this.style.background = '#28a745';
+            };
             // Update attachment for phishing email
             attachmentIcon.textContent = '📁';
             attachmentName.textContent = 'urgent_security_update.exe';
@@ -505,49 +504,34 @@ Qualtrics.SurveyEngine.addOnReady(function () {
     });
 
 
-
-    // Add button functionality
-	document.getElementById('show-attachments-btn').addEventListener('click', function () {
-		var attachmentContainer = document.getElementById('attachment-container');
-		if (attachmentContainer.style.display === 'none' || attachmentContainer.style.display === '') {
-			attachmentContainer.style.display = 'block';
-			this.textContent = 'Hide Attachments (1)';
-		} else {
-			attachmentContainer.style.display = 'none';
-			this.textContent = 'Show Attachments (1)';
-		}
-	});
-
-
-
     // Tooltip functionality for links
-    window.showTooltip = function(event, message, type) {
+    window.showTooltip = function (event, message, type) {
         event.preventDefault();
-        
+
         // Remove any existing tooltip
         var existingTooltip = document.querySelector('.link-tooltip');
         if (existingTooltip) {
             existingTooltip.remove();
         }
-        
+
         // Create new tooltip
         var tooltip = document.createElement('div');
         tooltip.className = 'link-tooltip ' + type;
-        tooltip.innerHTML = 
+        tooltip.innerHTML =
             '<div class="link-tooltip-header">' +
-                '<div style="flex: 1;">' + message + '</div>' +
-                '<button class="link-tooltip-close" onclick="this.parentElement.parentElement.remove()">&times;</button>' +
+            '<div style="flex: 1;">' + message + '</div>' +
+            '<button class="link-tooltip-close" onclick="this.parentElement.parentElement.remove()">&times;</button>' +
             '</div>';
-        
+
         document.body.appendChild(tooltip);
-        
+
         // Position tooltip near the clicked element
         var rect = event.target.getBoundingClientRect();
         var tooltipRect = tooltip.getBoundingClientRect();
-        
+
         var left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
         var top = rect.bottom + 10;
-        
+
         // Ensure tooltip stays within viewport
         if (left < 10) left = 10;
         if (left + tooltipRect.width > window.innerWidth - 10) {
@@ -556,13 +540,13 @@ Qualtrics.SurveyEngine.addOnReady(function () {
         if (top + tooltipRect.height > window.innerHeight - 10) {
             top = rect.top - tooltipRect.height - 10;
         }
-        
+
         tooltip.style.left = left + 'px';
         tooltip.style.top = top + 'px';
         tooltip.style.display = 'block';
-        
+
         // Close tooltip when clicking outside
-        setTimeout(function() {
+        setTimeout(function () {
             document.addEventListener('click', function closeTooltip(e) {
                 if (!tooltip.contains(e.target) && e.target !== event.target) {
                     tooltip.remove();
@@ -572,10 +556,10 @@ Qualtrics.SurveyEngine.addOnReady(function () {
         }, 100);
     };
 
-	// replaced with initPhishingHelper() from separate addons
+    // replaced with initPhishingHelper() from separate addons
 
     // Small delay to ensure email interface is loaded, then start initial countdown
-    setTimeout(function() {
+    setTimeout(function () {
         var emailContainer = document.getElementById('email-container');
         if (!emailContainer) {
             console.error('Email container not found');

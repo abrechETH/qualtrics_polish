@@ -17,13 +17,13 @@ Qualtrics.SurveyEngine.addOnUnload(function () {
 
     // Clean up all addon elements using common class
     var addonElements = document.querySelectorAll('.qualtrics-addon');
-    addonElements.forEach(function(element) {
+    addonElements.forEach(function (element) {
         element.remove();
     });
-    
+
     // Clean up any tooltips
     var tooltips = document.querySelectorAll('.link-tooltip');
-    tooltips.forEach(function(tooltip) {
+    tooltips.forEach(function (tooltip) {
         tooltip.remove();
     });
 
@@ -40,33 +40,33 @@ Qualtrics.SurveyEngine.addOnReady(function () {
     // questionContainer.innerHTML = '';
 
     // Define email content variable at the start of addOnReady function
-    var emailContent = 
+    var emailContent =
         "<p>Hi there,</p>" +
         "<p>I wanted to share the Q1 results with you. The project has exceeded our " +
         "expectations with a 25% increase in user engagement and a 15% improvement in " +
         "conversion rates.</p>" +
         "<p>Key highlights:</p>" +
         "<ul>" +
-            "<li>User engagement increased by 20%</li>" +
-            "<li>Conversion rates improved by 15%</li>" +
-            "<li>Customer satisfaction score: 4.8/5</li>" +
-            "<li>New feature adoption rate: 78%</li>" +
+        "<li>User engagement increased by 20%</li>" +
+        "<li>Conversion rates improved by 15%</li>" +
+        "<li>Customer satisfaction score: 4.8/5</li>" +
+        "<li>New feature adoption rate: 78%</li>" +
         "</ul>" +
         "<p>I'd love to hear your thoughts on these results and discuss next steps for Q2. " +
         "You can view the detailed report <a href=\"#\" onclick=\"showTooltip(event, 'This is a legitimate business email link. In a real scenario, this would open a secure report.', 'normal'); return false;\" style=\"color: #0066cc;\">here</a>.</p>" +
         "<p>Best regards,<br>Sarah Johnson</p>"
 
-	var phishyContent = 
-		"<p>Dear Valued Customer,</p>" +
-		"<p>We have detected unusual activity on your account that requires immediate attention. " +
-		"Your account security is our top priority.</p>" +
-		"<p>To protect your account, please verify your information by clicking the link below:</p>" +
-		"<p style=\"text-align: center;\">" +
-			"<a href=\"#\" style=\"color: #0066cc;\" onclick=\"showTooltip(event, '⚠️ PHISHING ATTEMPT DETECTED! This link would steal your credentials. Never click suspicious links demanding urgent action.', 'warning'); return false;\">Verify Account Now</a>" +
-		"</p>" +
-		"<p>If you do not take action within 24 hours, your account will be temporarily suspended.</p>" +
-		"<p>This is an automated message, please do not reply.</p>" +
-		"<p>Best regards,<br>Account Security Team</p>"
+    var phishyContent =
+        "<p>Dear Valued Customer,</p>" +
+        "<p>We have detected unusual activity on your account that requires immediate attention. " +
+        "Your account security is our top priority.</p>" +
+        "<p>To protect your account, please verify your information by clicking the link below:</p>" +
+        "<p style=\"text-align: center;\">" +
+        "<br><a href=\"#\" style=\"color: #0066cc;\" onclick=\"showTooltip(event, '⚠️ PHISHING ATTEMPT DETECTED! This link would steal your credentials. Never click suspicious links demanding urgent action.', 'warning'); return false;\">Verify Account Now</a>" +
+        "</p><br>" +
+        "<p>If you do not take action within 24 hours, your account will be temporarily suspended.</p>" +
+        "<p>This is an automated message, please do not reply.</p>" +
+        "<p>Best regards,<br>Account Security Team</p>"
 
 
     // Create the email interface HTML
@@ -89,12 +89,12 @@ Qualtrics.SurveyEngine.addOnReady(function () {
 				border-radius: 8px 8px 0 0;
 			">
 				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-					<h2 style="margin: 0; color: #333; font-size: 18px;">Account Security Alert</h2>
+					<h2 id="subject-header" style="margin: 0; color: #333; font-size: 18px;">Account Security Alert</h2>
 					<span style="color: #666; font-size: 14px;">2 hours ago</span>
 				</div>
 				<div style="color: #666; font-size: 14px;">
-					<strong>From:</strong> "Sarah Johnson" &lt;sarah.johnson@company.com&gt;<br>
-					<strong>To:</strong> "You" &lt;you@company.com&gt;<br>
+					<strong>From:</strong> <span id="sender-span">"Account Security" <account.security@company.com></span><br>
+					<strong>To:</strong> <span>"You" &lt;you@company.com&gt;</span><br>
 				</div>
 			</div>
 			
@@ -107,32 +107,14 @@ Qualtrics.SurveyEngine.addOnReady(function () {
 				overflow-y: auto;
 				border-bottom: 1px solid #e0e0e0;
 			"> ` + phishyContent + `</div>
-			
-			<!-- Action Buttons -->
-			<div id="attachment-toggle" style="
-				padding: 15px 20px;
-				background: #f8f9fa;
-				border-top: 1px solid #e0e0e0;
-				text-align: center;
-			">
-				<button id="show-attachments-btn" style="
-					background: #17a2b8;
-					color: white;
-					border: none;
-					padding: 8px 16px;
-					border-radius: 4px;
-					cursor: pointer;
-					font-size: 14px;
-					font-weight: 500;
-				">📎 Show Attachments (1)</button>
-			</div>
-			
+		
 			<div id="attachment-container" style="
 				padding: 20px;
 				background: #f8f9fa;
 				border-top: 1px solid #e0e0e0;
-				display: none;
+				display: block;
 			">
+			<h3 style="padding-bottom: 12px;">Attachment</h3>
 				<div id="attachment-item" style="
 					display: flex;
 					align-items: center;
@@ -187,7 +169,7 @@ Qualtrics.SurveyEngine.addOnReady(function () {
 
     console.log(s1);
     console.log(s2);
-	console.log(something);
+    console.log(something);
 
     // Insert the email interface into the question container (append instead of replace)
     var emailDiv = document.createElement('div');
@@ -203,7 +185,6 @@ Qualtrics.SurveyEngine.addOnReady(function () {
 			transform: translateY(-1px);
 			transition: all 0.2s ease;
 		}
-		#show-attachments-btn:hover { background: #138496 !important; }
 
 		
 		/* Mobile responsive styles */
@@ -293,9 +274,21 @@ Qualtrics.SurveyEngine.addOnReady(function () {
     document.head.appendChild(style);
 
     // Track email mode
-    var isPhishingMode = false;
+    var isPhishingMode = true;
 
-
+    // Function to update the subject header
+    function updateSubjectAndSender(isPhishing) {
+        let subjectHeader = document.getElementById('subject-header');
+        let senderSpan = document.getElementById('sender-span');
+        if (subjectHeader) {
+            subjectHeader.innerText = isPhishing ? "Account Security Alert" : "Quarter Results";
+        }
+        if (senderSpan) {
+            senderSpan.innerText = isPhishing ?
+                "\"Account Security\" <account.security@company.com>" :
+                "\"Sarah Johnson\" <sarah.johnson@company.com>";
+        }
+    }
 
     document.getElementById('change-content-btn').addEventListener('click', function () {
         var emailBody = document.getElementById('email-body');
@@ -303,13 +296,17 @@ Qualtrics.SurveyEngine.addOnReady(function () {
         var attachmentName = document.getElementById('attachment-name');
         var attachmentSize = document.getElementById('attachment-size');
         isPhishingMode = !isPhishingMode;
-
-        if (isPhishingMode) {
+        updateSubjectAndSender(isPhishingMode);
+        if (!isPhishingMode) {
             emailBody.innerHTML = emailContent;
             this.textContent = 'Display Phishing Email';
             this.style.background = '#dc3545';
-            this.onmouseover = function() { this.style.background = '#c82333'; };
-            this.onmouseout = function() { this.style.background = '#dc3545'; };
+            this.onmouseover = function () {
+                this.style.background = '#c82333';
+            };
+            this.onmouseout = function () {
+                this.style.background = '#dc3545';
+            };
             // Update attachment for normal email
             attachmentIcon.textContent = '📄';
             attachmentName.textContent = 'Q1_Business_Report.pdf';
@@ -318,8 +315,12 @@ Qualtrics.SurveyEngine.addOnReady(function () {
             emailBody.innerHTML = phishyContent;
             this.textContent = 'Display Normal Email';
             this.style.background = '#28a745';
-            this.onmouseover = function() { this.style.background = '#218838'; };
-            this.onmouseout = function() { this.style.background = '#28a745'; };
+            this.onmouseover = function () {
+                this.style.background = '#218838';
+            };
+            this.onmouseout = function () {
+                this.style.background = '#28a745';
+            };
             // Update attachment for phishing email
             attachmentIcon.textContent = '📁';
             attachmentName.textContent = 'urgent_security_update.exe';
@@ -327,32 +328,16 @@ Qualtrics.SurveyEngine.addOnReady(function () {
         }
     });
 
-
-
-    // Add button functionality
-	document.getElementById('show-attachments-btn').addEventListener('click', function () {
-		var attachmentContainer = document.getElementById('attachment-container');
-		if (attachmentContainer.style.display === 'none' || attachmentContainer.style.display === '') {
-			attachmentContainer.style.display = 'block';
-			this.textContent = 'Hide Attachments (1)';
-		} else {
-			attachmentContainer.style.display = 'none';
-			this.textContent = 'Show Attachments (1)';
-		}
-	});
-
-
-
     // Tooltip functionality for links
-    window.showTooltip = function(event, message, type) {
+    window.showTooltip = function (event, message, type) {
         event.preventDefault();
-        
+
         // Remove any existing tooltip
         var existingTooltip = document.querySelector('.link-tooltip');
         if (existingTooltip) {
             existingTooltip.remove();
         }
-        
+
         // Create new tooltip
         var tooltip = document.createElement('div');
         tooltip.className = 'link-tooltip ' + type;
@@ -362,16 +347,16 @@ Qualtrics.SurveyEngine.addOnReady(function () {
                 <button class="link-tooltip-close" onclick="this.parentElement.parentElement.remove()">&times;</button>
             </div>
         `;
-        
+
         document.body.appendChild(tooltip);
-        
+
         // Position tooltip near the clicked element
         var rect = event.target.getBoundingClientRect();
         var tooltipRect = tooltip.getBoundingClientRect();
-        
+
         var left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
         var top = rect.bottom + 10;
-        
+
         // Ensure tooltip stays within viewport
         if (left < 10) left = 10;
         if (left + tooltipRect.width > window.innerWidth - 10) {
@@ -380,13 +365,13 @@ Qualtrics.SurveyEngine.addOnReady(function () {
         if (top + tooltipRect.height > window.innerHeight - 10) {
             top = rect.top - tooltipRect.height - 10;
         }
-        
+
         tooltip.style.left = left + 'px';
         tooltip.style.top = top + 'px';
         tooltip.style.display = 'block';
-        
+
         // Close tooltip when clicking outside
-        setTimeout(function() {
+        setTimeout(function () {
             document.addEventListener('click', function closeTooltip(e) {
                 if (!tooltip.contains(e.target) && e.target !== event.target) {
                     tooltip.remove();
@@ -396,13 +381,13 @@ Qualtrics.SurveyEngine.addOnReady(function () {
         }, 100);
     };
 
-	// replaced with initPhishingHelper() from separate addons
-	initPhishingHelper();
+    // replaced with initPhishingHelper() from separate addons
+    initPhishingHelper();
 });
 
 function initPhishingHelper() {
     // Small delay to ensure email interface is loaded
-    setTimeout(function() {
+    setTimeout(function () {
         var emailContainer = document.getElementById('email-container');
         if (!emailContainer) {
             console.error('Email container not found');
@@ -590,18 +575,18 @@ function initPhishingHelper() {
         // Initialize with default confidence values
         var currentConfidence = 85; // Bar confidence (phishing likelihood)
         var currentCircleConfidence = 30; // Circle confidence (phishing detection confidence)
-        
+
         // Function to update the bar confidence level
         function updateBarConfidence(newConfidence) {
             currentConfidence = Math.max(0, Math.min(100, newConfidence));
             var riskIndicatorBar = document.getElementById('risk-indicator-bar');
             var riskPercentageBar = document.getElementById('risk-percentage-bar');
-            
+
             if (riskIndicatorBar && riskPercentageBar) {
                 riskIndicatorBar.style.width = currentConfidence + '%';
                 riskPercentageBar.textContent = currentConfidence + '%';
                 riskPercentageBar.style.left = currentConfidence + '%';
-                
+
                 // Update color based on risk level
                 if (currentConfidence < 30) {
                     riskIndicatorBar.style.background = '#28a745';
@@ -624,14 +609,14 @@ function initPhishingHelper() {
             currentCircleConfidence = Math.max(0, Math.min(100, newConfidence));
             var confidenceCircle = document.getElementById('confidence-circle');
             var confidencePercentage = document.getElementById('confidence-percentage');
-            
+
             if (confidenceCircle && confidencePercentage) {
                 var circumference = 2 * Math.PI * 35; // radius = 35
                 var offset = circumference - (currentCircleConfidence / 100) * circumference;
-                
+
                 confidenceCircle.style.strokeDashoffset = offset;
                 confidencePercentage.textContent = currentCircleConfidence + '%';
-                
+
                 // Update circle color based on confidence level
                 if (currentCircleConfidence < 30) {
                     confidenceCircle.style.stroke = '#dc3545';
@@ -651,11 +636,11 @@ function initPhishingHelper() {
         var isPhishingMode = true;
 
         // Use event delegation to handle clicks on the change content button
-        document.addEventListener('click', function(event) {
+        document.addEventListener('click', function (event) {
             if (event.target && event.target.id === 'change-content-btn') {
                 // Toggle the mode
                 isPhishingMode = !isPhishingMode;
-                
+
                 if (isPhishingMode) {
                     // Switching to phishing email
                     updateBarConfidence(85); // High risk for phishing email
