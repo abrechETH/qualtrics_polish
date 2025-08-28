@@ -199,7 +199,34 @@ Qualtrics.SurveyEngine.addOnReady(function () {
                     </div>
                 </div>
             </div>
-
+                        
+            <!-- Slightly Red Banner -->
+            <div id="phishing-banner" style="
+              background-color: #fee2e2; 
+              padding: 12px; 
+              border-radius: 12px; 
+              text-align: center; 
+              font-family: sans-serif;
+              font-weight: 600;
+              color: #374151;
+              display: block;
+            ">
+              Phishing Email
+            </div>
+            
+            <!-- Slightly Green Banner -->
+            <div id="benign-banner" style="
+              background-color: #dcfce7; 
+              padding: 12px; 
+              border-radius: 12px; 
+              text-align: center; 
+              font-family: sans-serif;
+              font-weight: 600;
+              color: #374151;
+              display: none;
+            ">
+              Normal Email
+            </div>
                         <!-- Email Container -->
             <div id="email-container" class="email-interactions-disabled" style="
                 flex: 1;
@@ -210,7 +237,8 @@ Qualtrics.SurveyEngine.addOnReady(function () {
                 position: relative;
                 opacity: 1;
                 transition: all 0.3s ease;
-            ">
+            ">        
+
 			<!-- Email Header -->
 			<div id="email-header" style="
 				background: #f8f9fa;
@@ -804,6 +832,7 @@ Qualtrics.SurveyEngine.addOnReady(function () {
           width: 100%;
           height: 100%;
           background: rgba(128, 128, 128, 0.2);
+          border-radius: 8px;
           z-index: 1;
         }
 	`;
@@ -823,6 +852,15 @@ Qualtrics.SurveyEngine.addOnReady(function () {
             senderSpan.innerText = isPhishing ?
                 "\"Account Security\" <account.security@company.com>" :
                 "\"Sarah Johnson\" <sarah.johnson@company.com>";
+        }
+
+        let phishingBanner = document.getElementById('phishing-banner');
+        let benignBanner = document.getElementById('benign-banner');
+        if (phishingBanner) {
+            phishingBanner.style.display = isPhishing ? 'block' : 'none';
+        }
+        if (benignBanner) {
+            benignBanner.style.display = isPhishing ? 'none' : 'block';
         }
     }
 

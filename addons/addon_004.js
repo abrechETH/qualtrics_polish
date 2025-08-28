@@ -72,7 +72,36 @@ Qualtrics.SurveyEngine.addOnReady(function () {
 
 
     // Create the email interface HTML
-    var emailInterface = `
+    var emailInterface = `        
+        <!-- Slightly Red Banner -->
+        <div id="phishing-banner" style="
+          background-color: #fee2e2; 
+          padding: 12px; 
+          border-radius: 12px; 
+          text-align: center; 
+          font-family: sans-serif;
+          font-weight: 600;
+          color: #374151;
+          margin-bottom: 8px;
+          display: block;
+        ">
+          Phishing Email
+        </div>
+        
+        <!-- Slightly Green Banner -->
+        <div id="benign-banner" style="
+          background-color: #dcfce7; 
+          padding: 12px; 
+          border-radius: 12px; 
+          text-align: center; 
+          font-family: sans-serif;
+          font-weight: 600;
+          color: #374151;
+          margin-bottom: 8px;
+          display: none;
+        ">
+          Normal Email
+        </div>
 		<div id="email-container" style="
 			max-width: 800px;
 			margin: 0 auto;
@@ -399,7 +428,7 @@ Qualtrics.SurveyEngine.addOnReady(function () {
     document.head.appendChild(style);
 
     // Email content switching functionality
-    var isPhishingMode = false;
+    var isPhishingMode = true;
 
     // Function to update the subject header
     function updateSubjectAndSender(isPhishing) {
@@ -413,6 +442,15 @@ Qualtrics.SurveyEngine.addOnReady(function () {
                 "\"Account Security\" <account.security@company.com>" :
                 "\"Sarah Johnson\" <sarah.johnson@company.com>";
         }
+
+        let phishingBanner = document.getElementById('phishing-banner');
+        let benignBanner = document.getElementById('benign-banner');
+        if (phishingBanner) {
+            phishingBanner.style.display = isPhishing ? 'block' : 'none';
+        }
+        if (benignBanner) {
+            benignBanner.style.display = isPhishing ? 'none' : 'block';
+        }
     }
 
 
@@ -424,7 +462,7 @@ Qualtrics.SurveyEngine.addOnReady(function () {
         isPhishingMode = !isPhishingMode;
         updateSubjectAndSender(isPhishingMode);
 
-        if (isPhishingMode) {
+        if (!isPhishingMode) {
             emailBody.innerHTML = emailContent;
             this.textContent = 'Display Phishing Email';
             this.style.background = '#dc3545';
